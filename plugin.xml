@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="com.intel.crosswalktools.newproject"
+            name="%category.name">
+      </category>
+      <wizard
+            category="com.intel.crosswalktools.newproject"
+            class="org.crosswalk.eclipse.cdt.newProject.NewPackagedWizard"
+            icon="images/icon-48.png"
+            id="com.intel.crosswalktools.newpackagedwizard"
+            name="%newWizard.name.1"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.intel.crosswalktools.newproject"
+            class="org.crosswalk.eclipse.cdt.newProject.NewHostedWizard"
+            icon="images/icon-48.png"
+            id="com.intel.crosswalktools.newhostedwizard"
+            name="%newWizard.name.0"
+            project="true">
+      </wizard>
+      
+   </extension>
+
+
+
+   <extension
+         point="org.eclipse.ui.exportWizards">
+         <category
+            id="com.intel.crosswalktools.export"
+            name="%category.name.0">
+         </category>
+         <wizard
+            category="com.intel.crosswalktools.export"
+            class="org.crosswalk.eclipse.cdt.export.ExportProjectWizard"
+            icon="images/icon-64.png"
+            id="com.intel.crosswalktools.exportprojectwizard"
+            name="%wizard.name.0">
+          </wizard>
+          
+   </extension>
+   
+   
+   
+   <extension
+         id="org.crosswalk.elcipse.cdt.crosswalknature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="org.crosswalk.eclipse.cdt.project.CrosswalkNature">
+         </run>
+      </runtime>
+   </extension>
+   
+   
+   
+   
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+            <newWizardShortcut
+               id="sscom.intel.crosswalktools.newpackagedwizard">//here show perspective
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
+   
+   
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.intel.crosswalktools.import"
+            name="%category.name.0">
+      </category>
+      <wizard
+            category="com.intel.crosswalktools.import"
+            class="org.crosswalk.eclipse.cdt.importProject.ImportProjectWizard"
+            icon="images/icon-48.png"
+            id="com.intel.crosswalktools.importprojectwizard"
+            name="%wizard.name.1">
+      </wizard>
+   </extension>
+</plugin>

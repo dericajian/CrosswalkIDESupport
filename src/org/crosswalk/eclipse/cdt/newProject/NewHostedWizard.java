@@ -72,6 +72,8 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 			ProjectHelper projectHelper = new ProjectHelper();
 			projectHelper.resourceHandler(root.getLocation().toString());
 
+			
+			//move the generated files into workspace
 			String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
 			String resourceFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
 			Path sourceIndexFile = FileSystems.getDefault().getPath(resourceFolder , "index.html");
@@ -87,7 +89,17 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 			Files.move(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
 			Files.move(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
 			
-
+			
+			//copy the user specified icon into workspace
+			
+			Path userIconPath = FileSystems.getDefault().getPath(nProjectWizardState.favIcon);
+			//CdtPluginLog.logInfo("The location of your favrite icon is :" + nProjectWizardState.favIcon);
+			String iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
+			//CdtPluginLog.logInfo("@@@@@@@@@@@@@@@@@@@@@@@@@@icon name is :" + iconName);
+			Path targetIconPath = FileSystems.getDefault().getPath(nProject.getLocation().toString(),iconName);
+			Files.copy(userIconPath, targetIconPath,REPLACE_EXISTING);
+			
+			//modify  manifest.json 
 			String manifestLocation = targetManifestFile.toString();
 			JSONObject manifest = new JSONObject(new JSONTokener(
 					new FileReader(manifestLocation)));

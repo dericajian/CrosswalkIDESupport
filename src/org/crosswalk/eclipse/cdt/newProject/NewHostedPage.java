@@ -300,7 +300,13 @@ public IWizardPage getNextPage()
 
 @Override
 public boolean canFlipToNextPage() {
-	return true;
+	if(isAppNameLegal(mApplicationText.getText())){
+		return true;
+	}
+	else{
+		return false;
+	}
+	
 }
 
 

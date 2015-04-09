@@ -26,6 +26,7 @@ public class NewProjectWizardState {
 
 	/** The application name */
 	public static String applicationName ="";
+	public static String favIcon = "icon-48.png";
 
 	public String applicationDescription;
 	
@@ -46,7 +47,7 @@ public class NewProjectWizardState {
 	public String startUrl = "index.html";
 	public boolean useDefaultIcon = true;
 	public String customizedIcon;
-	public String defaultIcon = "icon.png";
+	//default icon for user.User may change it to their favorite one.
 	public String iconSize = "48x48";
 	public String iconType = "image/png";
 	public String iconDensity = "1.0";

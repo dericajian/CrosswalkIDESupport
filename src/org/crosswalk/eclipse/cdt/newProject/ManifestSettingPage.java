@@ -1,10 +1,20 @@
 package org.crosswalk.eclipse.cdt.newProject;
 
+
 import java.io.File;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 
+
+
+
+
+
+import org.crosswalk.eclipse.cdt.CdtPluginLog;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -26,8 +36,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.framework.Bundle;
 
@@ -47,7 +60,9 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 	private ControlDecoration mStartUrlDec;
 	private Label mHelpNote;
 	private Label mTipLabel;
+	private Label iconLabel;
 	private Button iconPathbrowserButton;
+	private Button useDefaultIcon;
 	private Boolean mAppNameCanFinish;
 	private Boolean mStartUrlCanFinish;
 	private Boolean xwalkVersionChanged;
@@ -57,6 +72,8 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 	private String iconSourceMessage;
 	
 	
+	
+	
 	 ManifestSettingPage(NewProjectWizardState values) {
 		 super("manifestSetting");
 		 xwalkVersionChanged = false;
@@ -64,6 +81,8 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 		 iconPathChanged = false;
 		 iconSourceMessage = "Select the path of your favourite icon.";
 		 nHostedWizardState = values;
+		 
+		 
 			setTitle("Set the manifest for application");
 			Bundle bundle = Platform.getBundle("org.crosswalk.eclipse.cdt");
 					Path path = new Path("images/icon-68.png");
@@ -81,6 +100,8 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 		GridLayout gl_container = new GridLayout(4, false);
 		gl_container.horizontalSpacing = 10;
 		container.setLayout(gl_container);
+		
+		
 
 		Label versionLabel = new Label(container, SWT.NONE);
 		versionLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER,
@@ -119,15 +140,16 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 		
 		
 		//Set the icon for application
-		Label iconLabel = new Label(container, SWT.NONE);
+		iconLabel = new Label(container, SWT.NONE);
 		iconLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
 				false, 2, 1));
 		iconLabel.setText("icon:");
 		iconPathText = new Text(container,SWT.BORDER);
 		iconPathText.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,false,false,1,1));
 		iconPathText.addModifyListener(this);
-		iconPathText.setText("icon.png");
+		iconPathText.setText("icon-48.png");
 		iconPathText.addFocusListener(this);
+		iconPathText.setEnabled(false);
 		iconPathDec = createFieldDecoration(iconPathText,
 				"Choose your favourite icon for your application.There is an icon prepared for you, so you can use the defalut one.");
 		
@@ -135,7 +157,17 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 		iconPathbrowserButton.setText("Browse...");
 		iconPathbrowserButton.addSelectionListener(this);
 		iconPathbrowserButton.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,false,false,1,1));
-		iconPathbrowserButton.setEnabled(true);
+		iconPathbrowserButton.setEnabled(false);
+		//iconPathbrowserButton.setVisible(false);
+		
+		
+		useDefaultIcon = new Button(container,SWT.CHECK);
+		useDefaultIcon.setLayoutData(new GridData(SWT.RIGHT,SWT.CENTER,true,false,4,1));
+		useDefaultIcon.setText("Use default icon");
+		useDefaultIcon.addSelectionListener(this);
+		useDefaultIcon.setSelection(true);
+		
+		
 		
 		new Label(container, SWT.NONE);
 		new Label(container, SWT.NONE);
@@ -175,10 +207,54 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 
 	@Override
 	public void widgetSelected(SelectionEvent e) {
-		// TODO Auto-generated method stub
+		Object source = e.getSource();
+		if(source == useDefaultIcon){
+			if(useDefaultIcon.getSelection()){
+				iconPathText.setEnabled(false);
+				//iconPathText.setVisible(false);
+				//iconPathbrowserButton.setVisible(false);
+				iconPathbrowserButton.setEnabled(false);
+				//iconLabel.setVisible(false);
+			}else{
+//				iconPathText.setVisible(true);
+//				iconPathbrowserButton.setVisible(true);
+				iconPathbrowserButton.setEnabled(true);
+				iconPathText.setEnabled(true);
+				//iconLabel.setVisible(true);
+			}
+			
+		}
+		else if (source == iconPathbrowserButton) {
+			String dir = promptUserForLocation(getShell(), iconPathText, "Select the Path of your favoirte icon");
+			if (dir != null) {
+				iconPathText.setText(dir);
+			}
+			
+			
+			 
+		 
+		 }
 		
 	}
 
+	
+	
+	private String promptUserForLocation(Shell shell, Text textWidget,  String message) {
+		 FileDialog fd = new FileDialog(getShell());
+		fd.setText("choose your icon");
+		String curLocation;
+		String dir;
+
+		curLocation = textWidget.getText().trim();
+		if (!curLocation.isEmpty()) {
+			fd.setFilterPath(curLocation);
+		}
+
+		dir = fd.open();
+		return dir;
+	}
+	
+	
 	@Override
 	public void widgetDefaultSelected(SelectionEvent e) {
 		// TODO Auto-generated method stub
@@ -214,20 +290,24 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 	
 	public void onIconSourceChange(){	//TODO:if icon modified,delete the icon,and create icon 
 		String location = iconPathText.getText().trim();
-		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location, "icon.png");
-		if (location.length() == 0 || (!Files.exists(iconPath))) {
-			// reset canFinish in the wizard.
-			iconFile = null;
-			setPageComplete(false);
-			return;
-		}
-		
-				
+		//CdtPluginLog.logInfo("The location you chose is  " + location);
+		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
+		if(!location.equals("icon-48.png")){
+			if (location.length() == 0 || (!Files.exists(iconPath))) {
+				// reset canFinish in the wizard.
+				iconFile = null;
+				setPageComplete(false);
+				//CdtPluginLog.logInfo("location.length = " + location.length());
+				CdtPluginLog.logInfo("Files.exists =  " + Files.exists(iconPath));
+				return;
+				}
+		}		
 		else {
+			nHostedWizardState.favIcon = location;
+			CdtPluginLog.logInfo("The location of your favrite icon is :" + nHostedWizardState.favIcon);
 			setPageComplete(true);
 			iconPathChanged = true;
-		}							//in workspace based on the path provided .
-	
+		}							
 	}
 	
 	
@@ -252,18 +332,7 @@ public class ManifestSettingPage extends WizardPage implements ModifyListener,Se
 		String[] iconLocationArray = iconLocation.split(File.separator);
 		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(iconLocation);
 		
-		
-		
-		//modify manifest:set changed flag, modify the manifest if any one of the flags is ture.
-//		if((!iconLocation.equals("icon.png")) || (!iconLocation.equals("icon-48.png")) || (!Files.exists(iconPath)) || (iconLocationArray[iconLocationArray.length-1])!="icon.png"){
-//			errorCount++;
-//		}
-		
-			
 
-//		else{    //TODO:icon replace
-//			//Files.createFile(iconPath, null);
-//		}
 		if(!(mStartUrlText.getText().equals(nHostedWizardState.startUrl)) || mStartUrlText.getText().length()==0){
 			errorCount++;
 		}

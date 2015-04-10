@@ -29,7 +29,7 @@ public class NewProjectWizardState {
 	public static String favIcon = "icon-48.png";
 
 	public String applicationDescription;
-	
+	public static boolean iconPathChanged = false;
 	
 	
 
@@ -52,4 +52,5 @@ public class NewProjectWizardState {
 	public String iconType = "image/png";
 	public String iconDensity = "1.0";
 	public String applicationVersion = "0.0.1";
+	
 }

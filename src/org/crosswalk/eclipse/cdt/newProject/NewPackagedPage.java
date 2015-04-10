@@ -25,6 +25,7 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
@@ -164,8 +165,9 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		else {
 			projectNameCanFinish = true;
 		}
-		if (applicationText.getText().length() == 0) {
+		if (!isAppNameLegal(applicationText.getText())) {
 			appNameCanFinish = false;
+			setMessage("Application name must  contain 2 characters at least.");
 		}
 		else {
 			appNameCanFinish = true;
@@ -278,9 +280,36 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		tipLabel.setText("");
 		helpNote.setVisible(false);
 	}
+	
+	public boolean isAppNameLegal(String inputString)
+	{	
+		int leastNameLength = 2;
+		if(inputString.length() < leastNameLength)
+			return false;
+		else 
+			return true;
+	}
+	
 
+	
+	public IWizardPage getNextPage()
+	{    		
+		
+		PackagedManifestSettingPage page = ((NewPackagedWizard)getWizard()).packagedManifestSettingPage;
+		return page;
+	}
+	
+	
 	@Override
 	public boolean canFlipToNextPage() {
-		return false;
+		if(isAppNameLegal(applicationText.getText())){
+			return true;
+		}
+		else{
+			return false;
+		}
+		
 	}
+
+
 }

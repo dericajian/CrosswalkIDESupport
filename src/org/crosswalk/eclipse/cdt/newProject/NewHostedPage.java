@@ -2,7 +2,7 @@ package org.crosswalk.eclipse.cdt.newProject;
 
 import java.net.URL;
 
-import org.crosswalk.eclipse.cdt.CdtPluginLog;
+
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.events.ModifyListener;
@@ -41,7 +41,7 @@ public class NewHostedPage extends WizardPage implements ModifyListener,Selectio
 	private Label mTipLabel;
 	private Boolean mAppNameCanFinish;
 	private Boolean mProjectNameCanFinish;
-	private  ManifestSettingPage manifestSettingPage;
+//	private HostedManifestSettingPage hostedManifestSettingPage;
 	
 	 NewHostedPage(NewProjectWizardState values) {
 		 super("newHostedCrosswalkApp");
@@ -293,7 +293,7 @@ public boolean isAppNameLegal(String inputString)
 public IWizardPage getNextPage()
 {    		
 	
-	ManifestSettingPage page = ((NewHostedWizard)getWizard()).manifestSettingPage;
+	HostedManifestSettingPage page = ((NewHostedWizard)getWizard()).hostedManifestSettingPage;
 	return page;
 }
 

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.crosswalk.eclipse.cdt.CdtPluginLog;
+import org.crosswalk.eclipse.cdt.helpers.ProjectHelper;
 import org.crosswalk.eclipse.cdt.project.CrosswalkNature;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,8 +40,12 @@ import org.eclipse.ui.IWorkbench;
 public class NewPackagedWizard extends Wizard implements INewWizard {
 	static final String DefaultEntryFileContent = "<html><body><p>Welcome to Crosswalk!</p></body></html>";
 	private NewProjectWizardState nProjectWizardState;
-	private NewPackagedPage newPage;
+	PackagedManifestSettingPage packagedManifestSettingPage;
+	NewPackagedPage newPage;
 	private IProject nProject;
+	String iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
+
+	
 	public NewPackagedWizard() {
 
 	}
@@ -50,12 +55,14 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 		setWindowTitle("New Packaged Crosswalk Application");
 		nProjectWizardState = new NewProjectWizardState();
 		newPage = new NewPackagedPage(nProjectWizardState);
+		packagedManifestSettingPage = new PackagedManifestSettingPage(nProjectWizardState);
 	}
 
 	@Override
 	public void addPages() {
 		super.addPages();
 		addPage(newPage);
+		addPage(packagedManifestSettingPage);
 	}
 
 	@Override
@@ -68,15 +75,8 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			nProject.create(null);
 			nProject.open(IResource.BACKGROUND_REFRESH, null);
 			
-			final Map<String, String> env = new HashMap<String, String>(
-					System.getenv());
-			StringBuilder cmd = new StringBuilder();
-			cmd.append("crosswalk-app-deb create " + NewProjectWizardState.applicationName);
-			Process process = Runtime.getRuntime().exec(cmd.toString(),
-					mapToStringArray(env), nProject.getLocation().toFile());
-			process.waitFor();
-			Path appCreationPath = FileSystems.getDefault().getPath(nProject.getLocation().toFile().toString()+nProjectWizardState.applicationName);
-			Files.createDirectory(appCreationPath);
+			ProjectHelper projectHelper = new ProjectHelper();
+			projectHelper.resourceHandler(root.getLocation().toString());
 			
 			// add crosswalk nature to the nProject
 			CrosswalkNature.setupProjectNatures(nProject, null);

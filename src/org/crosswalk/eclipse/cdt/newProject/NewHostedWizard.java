@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.crosswalk.eclipse.cdt.CdtConstants;
@@ -33,8 +34,9 @@ import static java.nio.file.StandardCopyOption.*;
 public class NewHostedWizard extends Wizard implements INewWizard {
 	private NewProjectWizardState nProjectWizardState;
 	NewHostedPage nHostedPage;
-	ManifestSettingPage manifestSettingPage;
+	HostedManifestSettingPage hostedManifestSettingPage;
 	private IProject nProject;
+	String iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
 	
 	
 	public NewHostedWizard() {
@@ -46,14 +48,14 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 		setWindowTitle("New Hosted Crosswalk Application");
 		nProjectWizardState = new NewProjectWizardState();
 		nHostedPage = new NewHostedPage(nProjectWizardState);
-		manifestSettingPage = new ManifestSettingPage(nProjectWizardState);
+		hostedManifestSettingPage = new HostedManifestSettingPage(nProjectWizardState);
 
 	}
 
 	public void addPages() {
 		super.addPages();
 		addPage(nHostedPage);
-		addPage(manifestSettingPage);
+		addPage(hostedManifestSettingPage);
 
 	}
 
@@ -73,7 +75,7 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 			projectHelper.resourceHandler(root.getLocation().toString());
 
 			
-			//move the generated files into workspace
+			//copy the generated files into workspace
 			String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
 			String resourceFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
 			Path sourceIndexFile = FileSystems.getDefault().getPath(resourceFolder , "index.html");
@@ -84,20 +86,15 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 			Path targetIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
 			Path targetIconFile1 = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon-48.png");
 			Path targetIconFile2 = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon.png");
-			Files.move(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
-			Files.move(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
-			Files.move(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
-			Files.move(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
+			Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
+			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
+			Files.copy(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
+			Files.copy(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
 			
 			
 			//copy the user specified icon into workspace
 			
-			Path userIconPath = FileSystems.getDefault().getPath(nProjectWizardState.favIcon);
-			//CdtPluginLog.logInfo("The location of your favrite icon is :" + nProjectWizardState.favIcon);
-			String iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
-			//CdtPluginLog.logInfo("@@@@@@@@@@@@@@@@@@@@@@@@@@icon name is :" + iconName);
-			Path targetIconPath = FileSystems.getDefault().getPath(nProject.getLocation().toString(),iconName);
-			Files.copy(userIconPath, targetIconPath,REPLACE_EXISTING);
+			
 			
 			//modify  manifest.json 
 			String manifestLocation = targetManifestFile.toString();
@@ -112,6 +109,35 @@ public class NewHostedWizard extends Wizard implements INewWizard {
 					new JSONObject().put("web_url",
 							nProjectWizardState.hostedLaunchUrl));
 			manifest.remove("start_url");
+			
+			String iconSize = nProjectWizardState.iconSize;
+			JSONArray icons = manifest.getJSONArray("icons");
+			
+			if(nProjectWizardState.iconPathChanged){
+				Path userIconPath = FileSystems.getDefault().getPath(nProjectWizardState.favIcon);
+				//CdtPluginLog.logInfo("The location of your favrite icon is :" + nProjectWizardState.favIcon);
+				
+				Path targetIconPath = FileSystems.getDefault().getPath(nProject.getLocation().toString(),iconName);
+				Files.copy(userIconPath, targetIconPath,REPLACE_EXISTING);
+			
+				
+				JSONObject newIcon = new JSONObject();
+				for(int i=0;i<4;i++){
+					newIcon.put("src", iconName);
+					newIcon.put("sizes", iconSize);
+					newIcon.put("type", "image/png");
+					newIcon.put("density", "1.0");	
+				}
+				icons.put(newIcon);
+			
+			
+			}
+
+			
+			
+			
+			
+			
 			PrintWriter out = new PrintWriter(new FileOutputStream(nProject
 					.getLocation().toFile()
 					+ File.separator + "manifest.json"));

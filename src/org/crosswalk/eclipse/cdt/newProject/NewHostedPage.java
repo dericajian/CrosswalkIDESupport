@@ -161,7 +161,7 @@ public void modifyText(ModifyEvent e) {
 	}
 
 	
-	if ( !isAppNameLegal(mApplicationText.getText())) {
+	if ( !isAppNameValid(mApplicationText.getText())) {
 		mAppNameCanFinish = false;
 		setMessage("Application name must  contain 2 characters at least.");	
 	}
@@ -281,7 +281,7 @@ public void focusLost(FocusEvent e) {
 }
 
 
-public boolean isAppNameLegal(String inputString)
+public boolean isAppNameValid(String inputString)
 {	
 	int leastNameLength = 2;
 	if(inputString.length() < leastNameLength)
@@ -300,7 +300,7 @@ public IWizardPage getNextPage()
 
 @Override
 public boolean canFlipToNextPage() {
-	if(isAppNameLegal(mApplicationText.getText())){
+	if(isAppNameValid(mApplicationText.getText())){
 		return true;
 	}
 	else{

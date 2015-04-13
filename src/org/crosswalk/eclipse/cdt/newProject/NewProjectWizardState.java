@@ -27,8 +27,9 @@ public class NewProjectWizardState {
 	/** The application name */
 	public static String applicationName ="";
 	public static String favIcon = "icon-48.png";
-
+	public static String iconSize = "48x48";
 	public String applicationDescription;
+	public static boolean useDefaultIcon = true;
 	public static boolean iconPathChanged = false;
 	
 	
@@ -45,10 +46,10 @@ public class NewProjectWizardState {
 //	public String entryFile = "index.html";
 	public String hostedLaunchUrl = "https://crosswalk-project.org/";
 	public String startUrl = "index.html";
-	public boolean useDefaultIcon = true;
+	
 	public String customizedIcon;
 	//default icon for user.User may change it to their favorite one.
-	public String iconSize = "48x48";
+	
 	public String iconType = "image/png";
 	public String iconDensity = "1.0";
 	public String applicationVersion = "0.0.1";

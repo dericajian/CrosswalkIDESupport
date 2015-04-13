@@ -1,6 +1,7 @@
 package org.crosswalk.eclipse.cdt.newProject;
 
 
+import java.awt.Font;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 
 
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.crosswalk.eclipse.cdt.CdtPluginLog;
@@ -44,15 +46,18 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	
 	private static final int FIELD_WIDTH = 300;
 	static final int WIZARD_PAGE_WIDTH = 600;
-	private final NewProjectWizardState nHostedWizardState;
+	private final NewProjectWizardState nProjectWizardState;
 	private Text mStartUrlText;
 	private Text mVersionText;
 	public static Text iconPathText;
-	public static Text iconSizeText;
+	//public static Text iconSizeText;
+	public static Text iconHeightText;
+	public static Text iconWidthText;
 	private ControlDecoration iconPathDec;
 	private ControlDecoration mVersionDec;
 	private ControlDecoration mStartUrlDec;
-	private ControlDecoration iconSizeDec;
+	private ControlDecoration iconSizeDec1;
+	private ControlDecoration iconSizeDec2;
 	private Label mHelpNote;
 	private Label mTipLabel;
 	private Label iconLabel;
@@ -76,7 +81,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		 startUrlChanged = false;
 //		 iconPathChanged = false;
 		 iconSourceMessage = "Select the path of your favourite icon.";
-		 nHostedWizardState = values;
+		 nProjectWizardState = values;
 		 
 		 
 			setTitle("Set the manifest for application");
@@ -129,6 +134,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		mStartUrlText.setLayoutData(gdStartUrlText);
 		mStartUrlText.addModifyListener(this);
 		mStartUrlText.addFocusListener(this);
+		mStartUrlText.setEnabled(false);
 		mStartUrlDec = createFieldDecoration(mStartUrlText,
 				"The access point of your application for Crosswalk.You may use the default setting.");
 	
@@ -160,14 +166,28 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		iconSizeLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
 				false, 2, 1));
 		iconSizeLabel.setText("icon size:");
-		iconSizeText = new Text(container,SWT.BORDER);
-		iconSizeText.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		iconSizeText.addModifyListener(this);
-		iconSizeText.setText("48x48");
-		iconSizeText.addFocusListener(this);
-		iconSizeText.setEnabled(false);
-		iconSizeDec = createFieldDecoration(iconSizeText,"The size of your icon.It must met the requirement of your system");
+
+		Composite container2 = new Composite(container,SWT.NULL);
+		setControl(container2);
+		container2.setLayout(gl_container);
+		iconHeightText = new Text(container2,SWT.BORDER);
+		iconHeightText.setLayoutData(new GridData(SWT.LEFT,SWT.CENTER,true,false,1,2));
+		iconHeightText.addModifyListener(this);
+		iconHeightText.setText("48");
+		iconHeightText.addFocusListener(this);
+		iconHeightText.setEnabled(false);
 		
+		Label sizeOperator = new Label(container2,SWT.NONE);
+		sizeOperator.setText("x");
+		
+		iconWidthText = new Text(container2,SWT.BORDER);
+		iconWidthText.setLayoutData(new GridData(SWT.LEFT,SWT.CENTER,false,false,1,2));
+		iconWidthText.addModifyListener(this);
+		iconWidthText.setText("48");
+		iconWidthText.addFocusListener(this);
+		iconWidthText.setEnabled(false);
+		iconSizeDec1 = createFieldDecoration(iconHeightText,"The height of your icon(value: 10 to 999).");
+		iconSizeDec2 = createFieldDecoration(iconWidthText,"The width of your icon(value: 10 to 999)");
 		
 		
 		useDefaultIcon = new Button(container,SWT.CHECK);
@@ -217,18 +237,29 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	@Override
 	public void widgetSelected(SelectionEvent e) {
 		Object source = e.getSource();
-		if(source == useDefaultIcon){
+		if(source == useDefaultIcon ){
 			if(useDefaultIcon.getSelection()){
 				iconPathText.setEnabled(false);
 				iconPathbrowserButton.setEnabled(false);
-				iconSizeText.setEnabled(false);
+				iconHeightText.setEnabled(false);
+				iconWidthText.setEnabled(false);
+				nProjectWizardState.useDefaultIcon = true;
+				setPageComplete(true);
 			}else{
-				iconPathbrowserButton.setEnabled(true);
-				iconPathText.setEnabled(true);
-				iconSizeText.setEnabled(true);
+					iconPathbrowserButton.setEnabled(true);
+					iconPathText.setEnabled(true);
+//					if(!iconPathText.getText().toString().equals("icon-48.png")){
+//						iconHeightText.setEnabled(true);
+//						iconWidthText.setEnabled(true);
+//					}
+					iconHeightText.setEnabled(true);
+					iconWidthText.setEnabled(true);
+				nProjectWizardState.useDefaultIcon = false;
+				setPageComplete(false);
 				}
 			
 		}
+		
 		else if (source == iconPathbrowserButton) {
 			String dir = promptUserForLocation(getShell(), iconPathText, "Select the Path of your favoirte icon");
 			if (dir != null) {
@@ -273,14 +304,18 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		if (source == mStartUrlText) {
 			onStartUrlChange();
 	}
-		if (source == iconPathbrowserButton || source == iconPathText) {
+		if (source == iconPathbrowserButton || source == iconPathText || source == iconHeightText || source ==iconWidthText) {
 			onIconSourceChange();
 	}
+		
 	
 		CanFinish();
 	}
 	
 
+	public void onIconSizeChange(){
+		isIconSizeValid();
+	}
 	
 	public void onStartUrlChange(){
 		startUrlChanged = true;//TODO:modify manifest.json file
@@ -298,22 +333,16 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		
 		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
 		if(!location.equals("icon-48.png")){
-			//CdtPluginLog.logInfo("The location is not equals to default.");
-			if (location.length() == 0 || (!Files.exists(iconPath)) || (!isIconSizeLegal())) {
+			//CdtPluginLog.logInfo("The location does not equal to default.");
+			if (location.length() == 0 || (!Files.exists(iconPath)) || (!isIconSizeValid())) {
 				iconFile = null;
 				setPageComplete(false);
-				
-				
-				//CdtPluginLog.logInfo("location.length = " + location.length());
-				CdtPluginLog.logInfo("~~~~!!!onIconSourceChange() is invoked !!!~~~~~~");
 				return;
 				}
 			else{
-				nHostedWizardState.iconPathChanged = true;
-				nHostedWizardState.favIcon = location;	//Need more attention
-				nHostedWizardState.iconSize = iconSizeText.getText().trim();
-				CdtPluginLog.logInfo("The location of your favrite icon is :" + nHostedWizardState.favIcon);
-				setPageComplete(true);
+				nProjectWizardState.iconPathChanged = true;
+				nProjectWizardState.favIcon = location;	//Need more work
+				nProjectWizardState.iconSize = iconHeightText.getText().trim() + "x" + iconWidthText.getText().trim();	
 			}
 		}		
 									
@@ -342,7 +371,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(iconLocation);
 		
 
-		if(!(mStartUrlText.getText().equals(nHostedWizardState.startUrl)) || mStartUrlText.getText().length()==0){
+		if(!(mStartUrlText.getText().equals(nProjectWizardState.startUrl)) || mStartUrlText.getText().length()==0){
 			errorCount++;
 		}
 		else{
@@ -354,31 +383,36 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		else{
 			//TODO:modify xwalk_version in manifest
 		}
+
 		
-		
-		if (errorCount == 0) {
-			setPageComplete(true);
-		}
-		else {
+		if (errorCount != 0) {
 			errorMessage = "Please check the field(s) with * mark, which must meet the requirement.";
-			setPageComplete(false); 
 			setMessage(errorMessage, WARNING);
+			setPageComplete(false); 
+		}
+		else{
+			
 		}
 	}
 	
 	
 	
 	
-	public boolean isIconSizeLegal(){
-		String input = iconSizeText.getText().trim();
-		Pattern pattern = Pattern.compile("axb");
-		
-		if(!Pattern.matches("axb", input)){
-			CdtPluginLog.logInfo("Not match!!!!!!!!!!!!");
+	public boolean isIconSizeValid(){
+		String heightInput = iconHeightText.getText().trim();
+		String widthInput = iconWidthText.getText().trim();
+		Pattern pattern = Pattern.compile("[0-9]{2,3}");
+		Matcher matcher1 = pattern.matcher(heightInput);
+		Matcher matcher2 = pattern.matcher(widthInput);
+		if(!matcher1.matches() || (!matcher2.matches())){
+			
+			setPageComplete(false);
 			return false;
 		}
-		else
+		else{
+			setPageComplete(true);
 			return true;
+		}
 	}
 	
 	
@@ -391,12 +425,18 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		// handler for focus gained
 		Object source = e.getSource();
 		String tip = "";
+		String tip2 = "You can't change the size of default icon." + "\n" + "You must specify the location of your icon before editing this value .";
+		
 		if (source == mVersionText) {
 			tip = mVersionDec.getDescriptionText();
 		} else if (source == mStartUrlText) {
 			tip = mStartUrlDec.getDescriptionText();
 		}else if (source == iconPathText) {
 			tip = iconPathDec.getDescriptionText();
+		}else if (source == iconHeightText) {
+			tip = iconSizeDec1.getDescriptionText() + "\n" + tip2;
+		}else if (source == iconWidthText) {
+			tip = iconSizeDec2.getDescriptionText() + "\n" + tip2;
 		}
 
 		mTipLabel.setText(tip);

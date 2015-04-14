@@ -31,8 +31,8 @@ public class NewProjectWizardState {
 	public String applicationDescription;
 	public static boolean useDefaultIcon = true;
 	public static boolean iconPathChanged = false;
-	
-	
+	public static String startUrl = "index.html";
+	public static String xwalkVersion = "0.0.1";
 
 	/** Whether the project name has been edited by the user */
 	public boolean projectModified;
@@ -45,7 +45,7 @@ public class NewProjectWizardState {
 
 //	public String entryFile = "index.html";
 	public String hostedLaunchUrl = "https://crosswalk-project.org/";
-	public String startUrl = "index.html";
+	
 	
 	public String customizedIcon;
 	//default icon for user.User may change it to their favorite one.

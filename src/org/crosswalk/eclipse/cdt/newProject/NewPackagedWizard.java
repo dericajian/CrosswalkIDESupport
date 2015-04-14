@@ -122,8 +122,12 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 					new FileReader(manifestLocation)));
 
 			String applicationName = nProjectWizardState.applicationName;
-			manifest.put("name", applicationName);
-			manifest.put("app", new JSONObject());
+			manifest.put("name", applicationName);		
+			manifest.put("xwalk_version", nProjectWizardState.xwalkVersion);
+			manifest.put("start_url", nProjectWizardState.startUrl);
+			
+			
+			
 //			manifest.getJSONObject("app").put(
 //					"launch",
 //					new JSONObject().put("web_url",

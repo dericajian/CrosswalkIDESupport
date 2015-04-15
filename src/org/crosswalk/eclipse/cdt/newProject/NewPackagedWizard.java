@@ -54,7 +54,7 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 	NewPackagedPage newPage;
 	private IProject nProject;
 	String iconName;
-
+	String startUrl;
 	
 	public NewPackagedWizard() {
 
@@ -76,7 +76,7 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 	}
 
 	@Override
-	public boolean performFinish() {	//True to indicate the finish request is accepted.
+	public boolean performFinish() {	
 		try {
 			// create the web staff here
 			// ---- create the nProject in workspace ----
@@ -86,13 +86,27 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			nProject.open(IResource.BACKGROUND_REFRESH, null);
 			
 			ProjectHelper projectHelper = new ProjectHelper();
-			projectHelper.resourceHandler(root.getLocation().toString());
+			projectHelper.resourceHandler(root.getLocation().toString());	//generate the app by using crosswalk-app tool.
 			
 
 			//copy the generated files into workspace
 			String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
-			String resourceFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
-			Path sourceIndexFile = FileSystems.getDefault().getPath(resourceFolder , "index.html");
+			String resourceFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";	//copy files under folder named app.
+
+			Path sourceManifestFile = FileSystems.getDefault().getPath(resourceFolder , "manifest.json");		//copy manifest.json file
+			Path targetManifestFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "manifest.json");
+			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
+
+			String manifestLocation = targetManifestFile.toString();
+			JSONObject manifest = new JSONObject(new JSONTokener(				//get the manifest file to modify
+					new FileReader(manifestLocation)));
+
+			String applicationName = nProjectWizardState.applicationName;		//start to modify manifest 
+			String iconSize = nProjectWizardState.iconSize;
+			JSONArray icons = manifest.getJSONArray("icons");
+			manifest.put("name", applicationName);		
+			manifest.put("xwalk_version", nProjectWizardState.xwalkVersion);
+			
 			if(!nProjectWizardState.iconPathChanged || nProjectWizardState.useDefaultIcon){//copy the default icons for app if using default icon.
 				Path sourceIconFile1 = FileSystems.getDefault().getPath(resourceFolder , "icon-48.png");
 				Path sourceIconFile2 = FileSystems.getDefault().getPath(resourceFolder , "icon.png");
@@ -101,43 +115,7 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 				Files.copy(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
 				Files.copy(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
 			}
-			
-			
-			Path sourceManifestFile = FileSystems.getDefault().getPath(resourceFolder , "manifest.json");
-			Path targetManifestFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "manifest.json");
-			Path targetIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
-			
-			Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
-			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
-			
-			
-			
-			//copy the user specified icon into workspace
-			
-			
-			
-			//modify  manifest.json 
-			String manifestLocation = targetManifestFile.toString();
-			JSONObject manifest = new JSONObject(new JSONTokener(
-					new FileReader(manifestLocation)));
-
-			String applicationName = nProjectWizardState.applicationName;
-			manifest.put("name", applicationName);		
-			manifest.put("xwalk_version", nProjectWizardState.xwalkVersion);
-			manifest.put("start_url", nProjectWizardState.startUrl);
-			
-			
-			
-//			manifest.getJSONObject("app").put(
-//					"launch",
-//					new JSONObject().put("web_url",
-//							nProjectWizardState.hostedLaunchUrl));
-//			manifest.remove("start_url");
-			
-			String iconSize = nProjectWizardState.iconSize;
-			JSONArray icons = manifest.getJSONArray("icons");
-			
-			if(nProjectWizardState.iconPathChanged && !nProjectWizardState.useDefaultIcon){
+			else if(nProjectWizardState.iconPathChanged && !nProjectWizardState.useDefaultIcon){    //copy the specified icon by user into workspace.
 				CdtPluginLog.logInfo("Not use the default icon");
 				iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
 				Path userIconPath = FileSystems.getDefault().getPath(nProjectWizardState.favIcon);
@@ -159,6 +137,21 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 				//icons.remove(1);
 			
 			
+			}			
+			
+			if(nProjectWizardState.startUrlChanged){
+//				Path generatedIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
+//				Files.delete(generatedIndexFile);
+				startUrl = nProjectWizardState.startUrl.substring(nProjectWizardState.startUrl.lastIndexOf("/")+1);
+				Path sourceStartUrlFile = FileSystems.getDefault().getPath(nProjectWizardState.startUrl);
+				Path targetStartUrlFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), startUrl);	
+				Files.copy(sourceStartUrlFile, targetStartUrlFile);
+				manifest.put("start_url", startUrl);
+			}
+			else{
+				Path sourceIndexFile = FileSystems.getDefault().getPath(resourceFolder , "index.html");
+				Path targetIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
+				Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
 			}
 
 			

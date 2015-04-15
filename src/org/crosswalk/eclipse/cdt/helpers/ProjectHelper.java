@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.QualifiedName;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.crosswalk.eclipse.cdt.CdtConstants;
+import org.crosswalk.eclipse.cdt.CdtPluginLog;
 import org.crosswalk.eclipse.cdt.export.DebPackageParameters;
 import org.crosswalk.eclipse.cdt.newProject.NewProjectWizardState;
 
@@ -176,13 +177,14 @@ public final class ProjectHelper {
 	}
 	
 	
-	public  void resourceHandler(String resourceDir){
+	public  void resourceHandler(String resourceDir){  //create the app under workspace by tool "crosswalk-app"
 		File executionFile = new File(resourceDir);
 		final Map<String, String> env = new HashMap<String, String>(
 				System.getenv());
 		StringBuilder cmd = new StringBuilder();
 		String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
-		cmd.append("crosswalk-app-deb create " + packageName);
+		CdtPluginLog.logInfo("packageName: " + packageName);
+		cmd.append("crosswalk-app create " + packageName);
 		Process process;
 		try {
 			process = Runtime.getRuntime().exec(cmd.toString(),

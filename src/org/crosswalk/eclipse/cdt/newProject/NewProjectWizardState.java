@@ -32,6 +32,7 @@ public class NewProjectWizardState {
 	public static boolean useDefaultIcon = true;
 	public static boolean iconPathChanged = false;
 	public static String startUrl = "index.html";
+	public static boolean startUrlChanged = false;
 	public static String xwalkVersion = "0.0.1";
 
 	/** Whether the project name has been edited by the user */

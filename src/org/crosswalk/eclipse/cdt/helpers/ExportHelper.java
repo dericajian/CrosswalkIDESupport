@@ -33,6 +33,7 @@ import java.util.Map;
 import org.crosswalk.eclipse.cdt.CdtConstants;
 import org.crosswalk.eclipse.cdt.CdtPluginLog;
 import org.crosswalk.eclipse.cdt.export.DebPackageParameters;
+import org.crosswalk.eclipse.cdt.newProject.NewProjectWizardState;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -44,7 +45,10 @@ import org.json.JSONTokener;
 
 public final class ExportHelper {
 	private static IProgressMonitor pMonitor;
-	public static int doExport(IProject project, String targetFormat,
+	NewProjectWizardState nProjectWizardState;
+	
+	
+	public static  int doExport(IProject project, String targetFormat,
 			File destination, Object formatParameters, IProgressMonitor monitor) throws IOException {
 		int runResult = 0;
 		pMonitor = monitor;
@@ -73,7 +77,7 @@ public final class ExportHelper {
 		return strings;
 	}
 
-	private static void exportStream(InputStream in, PrintStream print)
+	private static  void exportStream(InputStream in, PrintStream print)
 			throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -88,7 +92,7 @@ public final class ExportHelper {
 	}
 
 	
-	public static int generateDebPackage(IProject project,DebPackageParameters packageparameters) throws IOException{
+	public static  int generateDebPackage(IProject project,DebPackageParameters packageparameters) throws IOException{
 		int runResult = 0;
 		StringBuilder cmd = new StringBuilder();
 		
@@ -97,20 +101,32 @@ public final class ExportHelper {
 		
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 
+		//copy all files in project and then export by executing "crosswalk-app build"
+//		JSONObject manifest = new JSONObject(new JSONTokener(
+//				new FileReader(project.getLocation().toString() + File.separator + "manifest.json")));
 		
-		JSONObject manifest = new JSONObject(new JSONTokener(
-				new FileReader(project.getLocation().toString() + File.separator + "manifest.json")));
+		Path sourceManifestFile = FileSystems.getDefault().getPath(project.getLocation().toString(), "manifest.json");
+		String manifestLocation = sourceManifestFile.toString();	
+		JSONObject manifest = new JSONObject(new JSONTokener(				//get the manifest file 
+				new FileReader(manifestLocation)));
+		
 		String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + manifest.get("name");
 		String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
-		Path targetIndexFile = FileSystems.getDefault().getPath(targetFolder , "index.html");
+		String sourceFolder = project.getLocation().toString();
+		Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
+		
+		
+		
+		
+//		Path targetIndexFile = FileSystems.getDefault().getPath(targetFolder , "index.html");
 		Path targetIconFile1 = FileSystems.getDefault().getPath(targetFolder , "icon-48.png");
 		Path targetIconFile2 = FileSystems.getDefault().getPath(targetFolder , "icon.png");
-		Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
-		Path sourceManifestFile = FileSystems.getDefault().getPath(project.getLocation().toString(), "manifest.json");
-		Path sourceIndexFile = FileSystems.getDefault().getPath(project.getLocation().toString(),"index.html");
+		
+
+//		Path sourceIndexFile = FileSystems.getDefault().getPath(project.getLocation().toString(),"index.html");
 		Path sourceIconFile1 = FileSystems.getDefault().getPath(project.getLocation().toString(), "icon-48.png");
 		Path sourceIconFile2 = FileSystems.getDefault().getPath(project.getLocation().toString(), "icon.png");
-		Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
+//		Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
 		Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
 		Files.copy(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
 		Files.copy(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
@@ -118,7 +134,7 @@ public final class ExportHelper {
 		File buildDir = new File(root.getLocation().toString() + File.separator + packageName);
 		
 		
-		cmd.append("crosswalk-app-deb build");	
+		cmd.append("crosswalk-app build");	
 		CdtPluginLog.logInfo("***** cmd: " + cmd.toString());
 		pMonitor.worked(1);
 		Process process = Runtime.getRuntime().exec(cmd.toString(),

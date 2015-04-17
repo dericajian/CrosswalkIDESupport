@@ -115,8 +115,9 @@ public final class ExportHelper {
 
 			ProjectHelper projectHelper = new ProjectHelper();
 			projectHelper.resourceHandler(root.getLocation().toString());
-			String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
+//			String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
 			String sourceFolder = project.getLocation().toString();
+			String targetFolder = sourceFolder + File.separator + ".tmp" + File.separator + packageName + File.separator + "app";
 			Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
 			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
 			//copy the icon file
@@ -146,7 +147,7 @@ public final class ExportHelper {
 
 		
 		
-		File buildDir = new File(root.getLocation().toString() + File.separator + packageName);
+		File buildDir = new File(project.getLocation().toString() + File.separator+".tmp" + File.separator + packageName);
 		
 		cmd.append("crosswalk-app build");	
 		CdtPluginLog.logInfo("***** cmd: " + cmd.toString());

@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.crosswalk.eclipse.cdt.CdtConstants;
@@ -84,14 +85,23 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			nProject.create(null);
 			nProject.open(IResource.BACKGROUND_REFRESH, null);
 			
+			//create the folder for generate app by using crosswalk-app tool.It's under the project folder,and hidden.
+			StringBuilder  cmd = new StringBuilder();
+			String tmpCreateLocation = nProject.getLocation().toString();
+			File tmpFolder = new File(tmpCreateLocation);
+			cmd.append("mkdir ").append(".tmp");
+			final Map<String, String> env = new HashMap<String, String>(
+					System.getenv());
+			Process process = Runtime.getRuntime().exec(cmd.toString(),
+					mapToStringArray(env), tmpFolder);
+			process.waitFor();
 			ProjectHelper projectHelper = new ProjectHelper();
-			projectHelper.resourceHandler(root.getLocation().toString());	//generate the app in workspace by using crosswalk-app tool.
+			projectHelper.resourceHandler(tmpCreateLocation + File.separator + ".tmp");	//generate the app in a hidden folder named ".tmp" by using crosswalk-app tool.
 			
 
 			//copy the generated files into workspace
 			String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
-			String resourceFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";	//copy files under folder named app.
-
+			String resourceFolder = tmpCreateLocation + File.separator + ".tmp" + File.separator + packageName + File.separator + "app";
 			Path sourceManifestFile = FileSystems.getDefault().getPath(resourceFolder , "manifest.json");		//copy manifest.json file
 			Path targetManifestFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "manifest.json");
 			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);

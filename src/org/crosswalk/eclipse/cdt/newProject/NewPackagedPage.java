@@ -17,6 +17,8 @@
 package org.crosswalk.eclipse.cdt.newProject;
 
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -92,8 +94,7 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		applicationText.addModifyListener(this);
 		applicationText.addFocusListener(this);
 		applicationDec = createFieldDecoration(applicationText,
-				"The application name is shown in the "
-						+ "Manage Application list in Settings.");
+				"The application name must be consist of lower case letters only,and 2 letters at least.");
 
 		Label projectLabel = new Label(container, SWT.NONE);
 		projectLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
@@ -165,9 +166,9 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		else {
 			projectNameCanFinish = true;
 		}
-		if (!isAppNameLegal(applicationText.getText())) {
+		if (!isAppNameValid(applicationText.getText())) {
 			appNameCanFinish = false;
-			setMessage("Application name must  contain 2 characters at least", WARNING);
+			setMessage("Application name must  contain 2 characters at least,and make sure they are lowercase letters", WARNING);
 		}
 		else {
 			setMessage("");
@@ -282,10 +283,14 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		helpNote.setVisible(false);
 	}
 	
-	public boolean isAppNameLegal(String inputString)
+	public boolean isAppNameValid(String inputString)
 	{	
+		//app name must be made up of lowercase ascii letters
+		
+		Pattern pattern = Pattern.compile("[a-z]{0,}");
+		Matcher matcher = pattern.matcher(inputString);
 		int leastNameLength = 2;
-		if(inputString.length() < leastNameLength)
+		if(inputString.length() < leastNameLength || (!matcher.matches()))
 			return false;
 		else 
 			return true;
@@ -303,7 +308,7 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 	
 	@Override
 	public boolean canFlipToNextPage() {
-		if(isAppNameLegal(applicationText.getText())){
+		if(isAppNameValid(applicationText.getText())){
 			return true;
 		}
 		else{

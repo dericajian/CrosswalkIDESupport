@@ -24,7 +24,6 @@ import java.io.PrintWriter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.crosswalk.eclipse.cdt.CdtConstants;
@@ -86,7 +85,7 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			nProject.open(IResource.BACKGROUND_REFRESH, null);
 			
 			ProjectHelper projectHelper = new ProjectHelper();
-			projectHelper.resourceHandler(root.getLocation().toString());	//generate the app by using crosswalk-app tool.
+			projectHelper.resourceHandler(root.getLocation().toString());	//generate the app in workspace by using crosswalk-app tool.
 			
 
 			//copy the generated files into workspace
@@ -97,8 +96,8 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			Path targetManifestFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "manifest.json");
 			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
 
-			String manifestLocation = targetManifestFile.toString();
-			JSONObject manifest = new JSONObject(new JSONTokener(				//get the manifest file to modify
+			String manifestLocation = targetManifestFile.toString();			//get the manifest file 
+			JSONObject manifest = new JSONObject(new JSONTokener(				
 					new FileReader(manifestLocation)));
 
 			String applicationName = nProjectWizardState.applicationName;		//start to modify manifest 
@@ -107,25 +106,22 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 			manifest.put("name", applicationName);		
 			manifest.put("xwalk_version", nProjectWizardState.xwalkVersion);
 			
-			if(!nProjectWizardState.iconPathChanged || nProjectWizardState.useDefaultIcon){//copy the default icons for app if using default icon.
-				Path sourceIconFile1 = FileSystems.getDefault().getPath(resourceFolder , "icon-48.png");
+			
+			if(!nProjectWizardState.iconPathChanged || nProjectWizardState.useDefaultIcon){//copy the default icon for app if using default icon.
+				Path sourceIconFile = FileSystems.getDefault().getPath(resourceFolder , "icon-48.png");
+				Path targetIconFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon-48.png");
 				Path sourceIconFile2 = FileSystems.getDefault().getPath(resourceFolder , "icon.png");
-				Path targetIconFile1 = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon-48.png");
-				Path targetIconFile2 = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon.png");
-				Files.copy(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
+				Path targetIconFile2 = FileSystems.getDefault().getPath(nProject.getLocation().toString(), "icon.png");		
+				Files.copy(sourceIconFile, targetIconFile, REPLACE_EXISTING);
 				Files.copy(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
 			}
 			else if(nProjectWizardState.iconPathChanged && !nProjectWizardState.useDefaultIcon){    //copy the specified icon by user into workspace.
-				CdtPluginLog.logInfo("Not use the default icon");
 				iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);
 				Path userIconPath = FileSystems.getDefault().getPath(nProjectWizardState.favIcon);
-				//CdtPluginLog.logInfo("The location of your favorite icon is :" + nProjectWizardState.favIcon);
-				
 				Path targetIconPath = FileSystems.getDefault().getPath(nProject.getLocation().toString(),iconName);
 				Files.copy(userIconPath, targetIconPath,REPLACE_EXISTING);
 			
-				
-				JSONObject newIcon = new JSONObject();
+				JSONObject newIcon = new JSONObject();   //add the info of user icon into manifest.json
 				for(int i=0;i<4;i++){
 					newIcon.put("src", iconName);
 					newIcon.put("sizes", iconSize);
@@ -133,39 +129,30 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 					newIcon.put("density", "1.0");	
 				}
 				icons.put(newIcon);
-				//icons.remove(0);
-				//icons.remove(1);
-			
-			
+				
 			}			
 			
-			if(nProjectWizardState.startUrlChanged){
-//				Path generatedIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
-//				Files.delete(generatedIndexFile);
+		
+			
+			if(nProjectWizardState.startUrlChanged){  			//update the start_url domain in manifest.json
 				startUrl = nProjectWizardState.startUrl.substring(nProjectWizardState.startUrl.lastIndexOf("/")+1);
 				Path sourceStartUrlFile = FileSystems.getDefault().getPath(nProjectWizardState.startUrl);
 				Path targetStartUrlFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(), startUrl);	
 				Files.copy(sourceStartUrlFile, targetStartUrlFile);
 				manifest.put("start_url", startUrl);
 			}
-			else{
+			else{			//use default index.html file
 				Path sourceIndexFile = FileSystems.getDefault().getPath(resourceFolder , "index.html");
 				Path targetIndexFile = FileSystems.getDefault().getPath(nProject.getLocation().toString(),"index.html");
 				Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
 			}
 
-			
-			
-			
-			
-			
 			PrintWriter out = new PrintWriter(new FileOutputStream(nProject
 					.getLocation().toFile()
 					+ File.separator + "manifest.json"));
 			out.write(manifest.toString(4));
 			out.close();
-			
-			
+
 			// add crosswalk nature to the nProject
 			CrosswalkNature.setupProjectNatures(nProject, null);
 

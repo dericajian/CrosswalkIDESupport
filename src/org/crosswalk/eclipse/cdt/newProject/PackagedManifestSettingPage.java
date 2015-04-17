@@ -69,7 +69,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	private Boolean startUrlCanFinish;
 	private Boolean xwalkVersionChanged;
 	private Boolean startUrlChanged;
-	//private Boolean iconPathChanged;
 	private Files iconFile;
 	private String iconSourceMessage;
 	
@@ -80,7 +79,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		 super("manifestSetting");
 		 xwalkVersionChanged = false;
 		 startUrlChanged = false;
-//		 iconPathChanged = false;
 		 iconSourceMessage = "Select the path of your favourite icon.";
 		 nProjectWizardState = values;
 		 
@@ -90,7 +88,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 					Path path = new Path("images/icon-68.png");
 			URL imageUrl = FileLocator.find(bundle, path, null);
 			setImageDescriptor(ImageDescriptor.createFromURL(imageUrl));
-			setPageComplete(false);
+			setPageComplete(true);
 			
 	 
 	 }
@@ -119,7 +117,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		xwalkVersionText.addModifyListener(this);
 		xwalkVersionText.addFocusListener(this);
 		versionDec = createFieldDecoration(xwalkVersionText,
-				"The version of Crosswalk. You can use the default value.");
+				"The version of Crosswalk. It must be between 1-4 dot-separated integers each between 0 and 65535");
 
 		
 		Label startUrlLabel = new Label(container, SWT.NONE);
@@ -135,9 +133,9 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		startUrlText.setLayoutData(gdStartUrlText);
 		startUrlText.addModifyListener(this);
 		startUrlText.addFocusListener(this);
-		startUrlText.setEnabled(false);
+		startUrlText.setEnabled(true);
 		startUrlDec = createFieldDecoration(startUrlText,
-				"The access point of your application for Crosswalk.You may use the default setting.");
+				"The access point of your application.It must be a html file.");
 	
 		startUrlBrowser = new Button(container,SWT.NONE);
 		startUrlBrowser.addSelectionListener(this);
@@ -157,14 +155,13 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		iconPathText.addFocusListener(this);
 		iconPathText.setEnabled(false);
 		iconPathDec = createFieldDecoration(iconPathText,
-				"Choose your favourite icon for your application.There is an icon prepared for you, so you can use the defalut one.");
+				"Icon of your application.There is an icon prepared for you, so you can use the defalut one.");
 		
 		iconPathBrowser = new Button(container,SWT.NONE);
 		iconPathBrowser.setText("Browse...");
 		iconPathBrowser.addSelectionListener(this);
 		iconPathBrowser.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,false,false,1,1));
 		iconPathBrowser.setEnabled(false);
-		//iconPathBrowser.setVisible(false);
 		
 		iconSizeLabel = new Label(container, SWT.NONE);
 		iconSizeLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
@@ -190,8 +187,8 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		iconWidthText.addModifyListener(this);
 		iconWidthText.addFocusListener(this);
 		iconWidthText.setEnabled(false);
-		iconSizeDec1 = createFieldDecoration(iconHeightText,"The height of your icon(value: 10 to 999).");
-		iconSizeDec2 = createFieldDecoration(iconWidthText,"The width of your icon(value: 10 to 999)");
+		iconSizeDec1 = createFieldDecoration(iconHeightText,"The height of your icon.The value must be between 10 and 999).");
+		iconSizeDec2 = createFieldDecoration(iconWidthText,"The width of your icon.The value must be between 10 and 999)");
 		
 		
 		useDefaultIcon = new Button(container,SWT.CHECK);
@@ -248,26 +245,13 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 					iconHeightText.setEnabled(false);
 					iconWidthText.setEnabled(false);
 					nProjectWizardState.useDefaultIcon = true;
-					if(isXwalkVersionValid()){     //if useDefaultIcon and isXwalkVersionValid both correct,set the isPageComplete to true;
-						setPageComplete(true);				
-					}
 			}
 			else{	//not use default icon
 					iconPathBrowser.setEnabled(true);
 					iconPathText.setEnabled(true);
 					iconHeightText.setEnabled(true);
 					iconWidthText.setEnabled(true);
-					String location = iconPathText.getText().trim();
-					if(!(location.equals("icon-48.png"))){   //if button not selected and the path text is changed,we say user 
-						nProjectWizardState.useDefaultIcon = false;						//doesn't use the default icon.
-						java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
-						if(isIconSizeValid() && isXwalkVersionValid() && Files.exists(iconPath) ){  //TODO:need more work
-							setPageComplete(true);
-						}
-						else{
-							setPageComplete(false);
-						}
-					}	
+					nProjectWizardState.useDefaultIcon = false;	
 				}
 			
 		}        
@@ -286,6 +270,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 			}		 
 		 }
 		
+		CanFinish();
 	}
 
 	
@@ -333,6 +318,9 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	}
 	
 
+	
+	
+	
 	public void onIconSizeChange(){
 		if(!isIconSizeValid()){
 			setPageComplete(false);
@@ -352,16 +340,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		}
 	}
 	
-	public boolean isStartUrlValid(){
-		String startUrlFileLocation = startUrlText.getText().toString();
-//		String startUrlFileName = startUrlFileLocation.substring(startUrlFileLocation.lastIndexOf('/')+1);
-		
-		if(startUrlFileLocation.endsWith(".html"))
-			return true;
-		else 
-			return false;
-	} 
-	
 	public void onXwalkVersionChange(){
 		if(!isXwalkVersionValid()){
 				setPageComplete(false);
@@ -370,17 +348,10 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		else{
 				nProjectWizardState.xwalkVersion = xwalkVersionText.getText().trim();
 				xwalkVersionChanged = true;
-				String location = iconPathText.getText().trim();
-				
-				java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
-				if(useDefaultIcon.getSelection() || (isIconSizeValid() && Files.exists(iconPath))){
-					setPageComplete(true);
-				}
 			}
 		 	
 		}
-	
-	
+
 	public void onIconSourceChange(){	//TODO:if icon modified,delete the icon,and create icon 
 		if(!isIconPathValid()){
 			setPageComplete(false);
@@ -389,31 +360,13 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 			String location = iconPathText.getText().trim();
 			java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
 			nProjectWizardState.iconPathChanged = true;
-			nProjectWizardState.favIcon = location;	//Need more work
-				
+			nProjectWizardState.useDefaultIcon = false;
+			nProjectWizardState.favIcon = location;	//Need more work			
 			}
 		}
 		
 				
-									
-	
-	
-	public boolean isIconPathValid(){
-		String iconLocation = iconPathText.getText().toString();
-		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(iconLocation);
-		if(iconLocation.endsWith(".png")){
-			if(!iconLocation.equals( "icon-48.png") || (!Files.exists(iconPath)))
-				return false;
-			else
-				return true;
-		}
-			
-		else 
-			return false;
-	} 
-	
-	
-	
+
 	
 	private ControlDecoration createFieldDecoration(Control control,
 			String description) {
@@ -432,71 +385,89 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	private void CanFinish() {
 		int errorCount = 0;
 		String errorMessage = new String("");
-//		String iconLocation = iconPathText.getText().trim();
-//		String[] iconLocationArray = iconLocation.split(File.separator);
-//		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(iconLocation);
-//		
-//
-//		if(!(startUrlText.getText().equals(nProjectWizardState.startUrl)) || startUrlText.getText().length()==0){
-//			errorCount++;
-//		}
-//		else{
-//			//TODO:modify start_url in manifest
-//		}
-//		if(xwalkVersionText.getText().length()==0){
-//			errorCount++;
-//		}
-//		else{
-//			//TODO:modify xwalk_version in manifest
-//		}
+
 		if(!isIconSizeValid()){
 			errorCount++;
-			setMessage("Size of icon is not valid,please check the Note");
+			setMessage("Size of icon is not valid,please check the Note", WARNING);
 		}
 		else if(!isStartUrlValid()){
 			errorCount++;
-			setMessage("The start_url you specified is not correct,please check the Note");
+			setMessage("The start_url you specified is not correct,please check the Note", WARNING);
 		}
 		else if(!isIconPathValid()){
 			errorCount++;
-			setMessage("The path you specified for icon is not correct,please check the Note");
+			setMessage("The path you specified for icon is not correct,please check the Note", WARNING);
 		}
 		else if(!isXwalkVersionValid()){
 			errorCount++;
-			setMessage("The xwalk_version you specified is not correct,please check the Note");
+			setMessage("The xwalk_version you specified is not correct,please check the Note", WARNING);
 		}
 		
 		if (errorCount != 0) {
-			errorMessage = "Please check the field(s) with * mark, which must meet the requirement.";
-			setMessage(errorMessage, WARNING);
 			setPageComplete(false); 
 		}
 		else{
+			setMessage("");
 			setPageComplete(true);
 		}
 	}
 	
 	
 	
-	public boolean isXwalkVersionValid(){
-		String xwalkVersion = xwalkVersionText.getText().toString();
-		Pattern pattern = Pattern.compile("^[0-9]{0,3}\\.[0-9]{0,3}\\.[0-9]{0,3}");
-		Matcher matcher = pattern.matcher(xwalkVersion);
-		if(!matcher.matches()){
-			return false;
+	
+	
+	public boolean isIconPathValid(){
+		String iconLocation = iconPathText.getText().toString();
+		java.nio.file.Path iconPath = FileSystems.getDefault().getPath(iconLocation);
+		if(iconLocation.endsWith(".png")){
+			if(!iconLocation.equals( "icon-48.png") && (!Files.exists(iconPath)))
+				return false;
+			else
+				return true;
 		}
+			
+		else 
+			return false;
+	} 
+	
+	public boolean isStartUrlValid(){
+		String startUrlFileLocation = startUrlText.getText().toString();
+		java.nio.file.Path startUrlFile = FileSystems.getDefault().getPath(startUrlFileLocation);	
+		if(startUrlFileLocation.endsWith(".html")){
+			if(!startUrlFileLocation.equals("index.html") && (!Files.exists(startUrlFile)))
+				return false;
+			else
+				return true;
+		}
+			
+		else 
+			return false;
+	} 
+	
+	public boolean isXwalkVersionValid(){
+		String versionString = xwalkVersionText.getText().toString();		
+		String[] versionNumber = versionString.split("/");
+		if(versionNumber.length<3 || versionNumber.length>4)	//make sure there are 3 segments in xwalk_version,
+			return false;				//since the tool may goes wrong if it lower than 0.0.1(default value)
 		else{
-			return true;
+			for(int i=0; i<versionNumber.length; i++){
+				if( (Integer.parseInt(versionNumber[i])>=0) && (Integer.parseInt(versionNumber[i])<=65535) ){
+					return true;
+				}
+				else{
+					return false;
+				}
+			}
 		}
 	}
 	
 	public boolean isIconSizeValid(){
 		String heightInput = iconHeightText.getText().toString();
 		String widthInput = iconWidthText.getText().toString();
-		Pattern pattern = Pattern.compile("[0-9]{2,3}");
+		Pattern pattern = Pattern.compile("[0-9]{1,3}");
 		Matcher matcher1 = pattern.matcher(heightInput);
 		Matcher matcher2 = pattern.matcher(widthInput);
-		if(!matcher1.matches() || (!matcher2.matches())){
+		if(!matcher1.matches() || (!matcher2.matches()) || heightInput.equals("0") || widthInput.equals("0")){
 			return false;
 		}
 		else{

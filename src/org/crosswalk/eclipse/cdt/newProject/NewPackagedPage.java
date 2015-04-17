@@ -167,9 +167,10 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 		}
 		if (!isAppNameLegal(applicationText.getText())) {
 			appNameCanFinish = false;
-			setMessage("Application name must  contain 2 characters at least.");
+			setMessage("Application name must  contain 2 characters at least", WARNING);
 		}
 		else {
+			setMessage("");
 			appNameCanFinish = true;
 		}
 		if (projectNameCanFinish && appNameCanFinish)

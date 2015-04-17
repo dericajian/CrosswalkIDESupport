@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -101,38 +103,50 @@ public final class ExportHelper {
 		
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 
-		//copy all files in project and then export by executing "crosswalk-app build"
-//		JSONObject manifest = new JSONObject(new JSONTokener(
-//				new FileReader(project.getLocation().toString() + File.separator + "manifest.json")));
 		
-		Path sourceManifestFile = FileSystems.getDefault().getPath(project.getLocation().toString(), "manifest.json");
-		String manifestLocation = sourceManifestFile.toString();	
+		Path sourceManifestFile = FileSystems.getDefault().getPath(project.getLocation().toString(), "manifest.json");	//copy the manifest.json file
+
+		String manifestLocation = project.getLocation().toString() + File.separator + "manifest.json";
 		JSONObject manifest = new JSONObject(new JSONTokener(				//get the manifest file 
 				new FileReader(manifestLocation)));
 		
 		String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + manifest.get("name");
-		String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
-		String sourceFolder = project.getLocation().toString();
-		Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
-		
-		
-		
-		
-//		Path targetIndexFile = FileSystems.getDefault().getPath(targetFolder , "index.html");
-		Path targetIconFile1 = FileSystems.getDefault().getPath(targetFolder , "icon-48.png");
-		Path targetIconFile2 = FileSystems.getDefault().getPath(targetFolder , "icon.png");
 		
 
-//		Path sourceIndexFile = FileSystems.getDefault().getPath(project.getLocation().toString(),"index.html");
-		Path sourceIconFile1 = FileSystems.getDefault().getPath(project.getLocation().toString(), "icon-48.png");
-		Path sourceIconFile2 = FileSystems.getDefault().getPath(project.getLocation().toString(), "icon.png");
-//		Files.copy(sourceIndexFile, targetIndexFile, REPLACE_EXISTING);
-		Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
-		Files.copy(sourceIconFile1, targetIconFile1, REPLACE_EXISTING);
-		Files.copy(sourceIconFile2, targetIconFile2, REPLACE_EXISTING);
+			ProjectHelper projectHelper = new ProjectHelper();
+			projectHelper.resourceHandler(root.getLocation().toString());
+			String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
+			String sourceFolder = project.getLocation().toString();
+			Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
+			Files.copy(sourceManifestFile, targetManifestFile, REPLACE_EXISTING);
+			//copy the icon file
+			if(NewProjectWizardState.useDefaultIcon){		//do nothing,since we copied the icon from org.crosswalk.appName folder
+			}
+			else{			//user-specified icon.We have to delete the default icons and copy the user-specified icon
+				String iconName = manifest.getJSONArray("icons").getJSONObject(2).get("src").toString();	
+				Path sourceIconFile = FileSystems.getDefault().getPath(sourceFolder, iconName);
+				Path targetIconFile = FileSystems.getDefault().getPath(targetFolder, iconName);
+				Path defaultIconFile1 = FileSystems.getDefault().getPath(targetFolder, "icon-48.png");
+				Path defaultIconFile2 = FileSystems.getDefault().getPath(targetFolder, "icon.png");
+				Files.copy(sourceIconFile, targetIconFile,REPLACE_EXISTING);
+				Files.delete(defaultIconFile1);
+				Files.delete(defaultIconFile2);
+			}
+			
+			
+			
+			//copy the launch file.
+			//We must copy this file no matter whether the name is index.html since user may change it after setting it in manifestSettingPage
+			String startUrl = manifest.get("start_url").toString();
+			CdtPluginLog.logInfo("startUrl for export is now: " +startUrl);
+			Path sourceStartUrlFile = FileSystems.getDefault().getPath(sourceFolder, startUrl);
+			Path targetStartUrlFile = FileSystems.getDefault().getPath(targetFolder, startUrl);
+			Files.copy(sourceStartUrlFile, targetStartUrlFile,REPLACE_EXISTING);
+		
+
+		
 		
 		File buildDir = new File(root.getLocation().toString() + File.separator + packageName);
-		
 		
 		cmd.append("crosswalk-app build");	
 		CdtPluginLog.logInfo("***** cmd: " + cmd.toString());
@@ -146,12 +160,13 @@ public final class ExportHelper {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		//copy the deb package to user-specified path
 		String debPackageName = packageparameters.appName + "_" + packageparameters.appVersion + "-1_" + packageparameters.supportedArch + ".deb";
+		CdtPluginLog.logInfo("The debPackgeName is :" + debPackageName);
 		Path source = FileSystems.getDefault().getPath(buildDir.toString() ,"pkg", debPackageName);
 		Path target = FileSystems.getDefault().getPath(packageparameters.targetFolder,debPackageName);
 		if(!packageparameters.targetFolder.equals(project.getLocation().toString())){
 				Files.copy(source, target, REPLACE_EXISTING);
-			
 			}
 		
 		
@@ -177,10 +192,12 @@ public final class ExportHelper {
 					e.printStackTrace();
 					CdtPluginLog.logError("Error when involking package tool.", e);
 				}
-			
-			
-		return runResult;
+
+				return runResult;
+		
 	}
+	
+	
 		
 
 }

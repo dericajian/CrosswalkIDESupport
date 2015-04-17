@@ -117,7 +117,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		xwalkVersionText.addModifyListener(this);
 		xwalkVersionText.addFocusListener(this);
 		versionDec = createFieldDecoration(xwalkVersionText,
-				"The version of Crosswalk. It must be between 1-4 dot-separated integers each between 0 and 65535");
+				"The version of Crosswalk. It must contain 3-4 dot-separated segments ,and each between 0 and 9999");
 
 		
 		Label startUrlLabel = new Label(container, SWT.NONE);
@@ -446,11 +446,18 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	
 	public boolean isXwalkVersionValid(){
 		boolean result = false;
-		if(xwalkVersionText.getText().toString().split("\\.").length == 3 || xwalkVersionText.getText().toString().split("\\.").length == 4){
-			if(!xwalkVersionText.getText().toString().endsWith(".")){
+		boolean allSegmentValid = false;
+			String[] versionParts = xwalkVersionText.getText().toString().split("\\.");
+			String curInput = xwalkVersionText.getText().toString().substring(xwalkVersionText.getText().toString().lastIndexOf('.')+1);
+			Pattern pattern = Pattern.compile("[0-9]{1,4}");	//must be numbers
+			Matcher matcher = pattern.matcher(curInput);	
+			if(matcher.matches() ){
+				if(xwalkVersionText.getText().toString().split("\\.").length == 3 || xwalkVersionText.getText().toString().split("\\.").length == 4)
+				allSegmentValid = true;
+			}
+			if(!xwalkVersionText.getText().toString().endsWith(".") && allSegmentValid){
 				result = true;
-			}			
-		}	
+			}				
 			return result;	
 	}
 	

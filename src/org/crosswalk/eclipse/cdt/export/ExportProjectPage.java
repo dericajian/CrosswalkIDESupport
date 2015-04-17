@@ -19,6 +19,7 @@ package org.crosswalk.eclipse.cdt.export;
 
 import java.io.File;
 import java.net.URL;
+
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -59,8 +60,6 @@ public class ExportProjectPage extends WizardPage implements ModifyListener,
 	private Boolean destinationCanFinish;
 	private Label packageInfo;
 	private Boolean settingCanFinish;
-
-
 	
 	
 	
@@ -100,7 +99,7 @@ public class ExportProjectPage extends WizardPage implements ModifyListener,
 		GridData gdDebPackageLabel = new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1);
 		gdDebPackageLabel.widthHint = FIELD_WIDTH;
 		debPackageLabel2.setLayoutData(gdDebPackageLabel);
-		debPackageLabel2.setText(packageParameters.packageName);
+		debPackageLabel2.setText(DebPackageParameters.debPackageName);
 		createFieldDecoration(debPackageLabel2,
 				"The package name is used for pack.");
 

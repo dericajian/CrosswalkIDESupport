@@ -15,17 +15,17 @@ public class DebPackageParameters {
 	public boolean useDefaultIcon = true;
 	public String appVersion;
 	public String currentLocation;
-
+	public static String debPackageName;
 	public DebPackageParameters(IProject project) {
 
 		JSONObject manifest = ProjectHelper.getManifest(project);
 		appName = manifest.getString("name");
 		appVersion = manifest.getString("xwalk_version");
 		packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + appName;
-		
+		supportedArch = "amd64";
+		debPackageName =appName + "_" + appVersion + "-1_" + supportedArch + ".deb";
 		// default targetFolder is the subdirectory in project location named pkg
 		targetFolder = project.getLocation().toFile().toString();
-		supportedArch = "amd64";
 		currentLocation = project.getLocation().toString();
 	}
 }

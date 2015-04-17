@@ -165,9 +165,9 @@ public final class ExportHelper {
 		CdtPluginLog.logInfo("The debPackgeName is :" + debPackageName);
 		Path source = FileSystems.getDefault().getPath(buildDir.toString() ,"pkg", debPackageName);
 		Path target = FileSystems.getDefault().getPath(packageparameters.targetFolder,debPackageName);
-		if(!packageparameters.targetFolder.equals(project.getLocation().toString())){
-				Files.copy(source, target, REPLACE_EXISTING);
-			}
+		Files.copy(source, target, REPLACE_EXISTING);
+
+		
 		
 		
 			try {

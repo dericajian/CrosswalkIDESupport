@@ -446,19 +446,18 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	
 	public boolean isXwalkVersionValid(){
 		String versionString = xwalkVersionText.getText().toString();		
-		String[] versionNumber = versionString.split("/");
-		if(versionNumber.length<3 || versionNumber.length>4)	//make sure there are 3 segments in xwalk_version,
-			return false;				//since the tool may goes wrong if it lower than 0.0.1(default value)
-		else{
-			for(int i=0; i<versionNumber.length; i++){
-				if( (Integer.parseInt(versionNumber[i])>=0) && (Integer.parseInt(versionNumber[i])<=65535) ){
-					return true;
-				}
-				else{
-					return false;
-				}
+		String[] versionNumber = versionString.split(".");
+		boolean result = false;
+		if(versionNumber.length == 3 || versionNumber.length == 4){	//make sure there are 3 segments in xwalk_version,
+			for(int i=0; i<versionNumber.length; i++){				//since the tool may goes wrong if it lower than 0.0.1(default value)
+				if( (Integer.parseInt(versionNumber[i]) < 0) || (Integer.parseInt(versionNumber[i]) > 65535) ){
+										break; 
+				}	       
+				if(i == versionNumber.length)//all versionNumber are right
+					result=true;		
 			}
-		}
+		}		
+		return result;				
 	}
 	
 	public boolean isIconSizeValid(){

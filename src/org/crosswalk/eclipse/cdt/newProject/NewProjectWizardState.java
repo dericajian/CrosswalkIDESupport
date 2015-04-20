@@ -34,7 +34,8 @@ public class NewProjectWizardState {
 	public static String startUrl = "index.html";
 	public static boolean startUrlChanged = false;
 	public static String xwalkVersion = "0.0.1";
-
+	public static String hostedLaunchUrl = "https://crosswalk-project.org/";
+	public static boolean isPackagedProject = true;
 	/** Whether the project name has been edited by the user */
 	public boolean projectModified;
 
@@ -45,7 +46,7 @@ public class NewProjectWizardState {
 	public String crosswalkLocation;
 
 //	public String entryFile = "index.html";
-	public String hostedLaunchUrl = "https://crosswalk-project.org/";
+	
 	
 	
 	public String customizedIcon;

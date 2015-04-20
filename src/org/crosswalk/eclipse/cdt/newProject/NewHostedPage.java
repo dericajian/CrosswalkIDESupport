@@ -1,7 +1,8 @@
 package org.crosswalk.eclipse.cdt.newProject;
 
 import java.net.URL;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -32,19 +33,19 @@ public class NewHostedPage extends WizardPage implements ModifyListener,Selectio
 	private static final int FIELD_WIDTH = 300;
 	static final int WIZARD_PAGE_WIDTH = 600;
 	private final NewProjectWizardState nHostedWizardState;
-	private Text mProjectText;
-	private Text mApplicationText;
+	private Text projectText;
+	private Text applicationText;
 	private boolean mIgnore;
-	private ControlDecoration mApplicationDec;
-	private ControlDecoration mProjectDec;
-	private Label mHelpNote;
-	private Label mTipLabel;
-	private Boolean mAppNameCanFinish;
-	private Boolean mProjectNameCanFinish;
-//	private HostedManifestSettingPage hostedManifestSettingPage;
+	private ControlDecoration applicationDec;
+	private ControlDecoration projectDec;
+	private Label helpNote;
+	private Label tipLabel;
+	private Boolean appNameCanFinish;
+	private Boolean projectNameCanFinish;
 	
 	 NewHostedPage(NewProjectWizardState values) {
 		 super("newHostedCrosswalkApp");
+		 	NewProjectWizardState.isPackagedProject = false;
 			nHostedWizardState = values;
 			setTitle("New Hosted Crosswalk Application");
 			setDescription("Creates a new Hosted Crosswalk Application");
@@ -53,8 +54,8 @@ public class NewHostedPage extends WizardPage implements ModifyListener,Selectio
 			URL imageUrl = FileLocator.find(bundle, path, null);
 			setImageDescriptor(ImageDescriptor.createFromURL(imageUrl));
 			setPageComplete(false);
-			mAppNameCanFinish = false;
-			mProjectNameCanFinish = false;
+			appNameCanFinish = false;
+			projectNameCanFinish = false;
 			
 	}
 
@@ -71,33 +72,30 @@ public void createControl(Composite parent) {
 			false, false, 2, 1));
 	applicationLabel.setText("Application Name:");
 
-	mApplicationText = new Text(container, SWT.BORDER);
+	applicationText = new Text(container, SWT.BORDER);
 	GridData gdApplicationText = new GridData(SWT.FILL, SWT.CENTER, true,
 			false, 2, 1);
 	gdApplicationText.widthHint = FIELD_WIDTH;
-	mApplicationText.setLayoutData(gdApplicationText);
-	mApplicationText.addModifyListener(this);
-	mApplicationText.addFocusListener(this);
-	mApplicationDec = createFieldDecoration(mApplicationText,
-			"The application name is shown in the Play Store, as well as in the "
-					+ "Manage Application list in Settings.");
+	applicationText.setLayoutData(gdApplicationText);
+	applicationText.addModifyListener(this);
+	applicationText.addFocusListener(this);
+	applicationDec = createFieldDecoration(applicationText,
+			"The application name must be consist of lower case letters only,and 2 letters at least.");
 
 	
 	Label projectLabel = new Label(container, SWT.NONE);
 	projectLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false,
 			false, 2, 1));
 	projectLabel.setText("Project Name:");
-	mProjectText = new Text(container, SWT.BORDER);
+	projectText = new Text(container, SWT.BORDER);
 	GridData gdProjectText = new GridData(SWT.FILL, SWT.CENTER, true,
 			false, 2, 1);
 	gdProjectText.widthHint = FIELD_WIDTH;
-	mProjectText.setLayoutData(gdProjectText);
-	mProjectText.addModifyListener(this);
-	mProjectText.addFocusListener(this);
-	setMessage("The application name must contain 2 characters at least.");
-	
-	mProjectDec = createFieldDecoration(
-			mProjectText,
+	projectText.setLayoutData(gdProjectText);
+	projectText.addModifyListener(this);
+	projectText.addFocusListener(this);	
+	projectDec = createFieldDecoration(
+			projectText,
 			"The project name is only used by Eclipse, but must be unique within the "
 					+ "workspace. This can typically be the same as the application name.");
 
@@ -109,18 +107,18 @@ public void createControl(Composite parent) {
 	Label label = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 	label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1));
 
-	mHelpNote = new Label(container, SWT.NONE);
-	mHelpNote.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false,
+	helpNote = new Label(container, SWT.NONE);
+	helpNote.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false,
 			1, 1));
-	mHelpNote.setText("Note:");
-	mHelpNote.setVisible(false);
+	helpNote.setText("Note:");
+	helpNote.setVisible(false);
 
-	mTipLabel = new Label(container, SWT.WRAP);
-	mTipLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2,
+	tipLabel = new Label(container, SWT.WRAP);
+	tipLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2,
 			1));
 
 	// Reserve space for 4 lines
-	mTipLabel.setText("\n\n\n\n"); //$NON-NLS-1$
+	tipLabel.setText("\n\n\n\n"); //$NON-NLS-1$
 
 	// Reserve enough width to accommodate the various wizard pages up front (since they are
 	// created lazily, and we don't want the wizard to dynamically resize itself for small
@@ -153,22 +151,23 @@ private ControlDecoration createFieldDecoration(Control control,
 
 @Override
 public void modifyText(ModifyEvent e) {
-	if (mProjectText.getText().length() == 0) {
-		mProjectNameCanFinish = false;
+	if (projectText.getText().length() == 0) {
+		projectNameCanFinish = false;
 	}
 	else {
-		mProjectNameCanFinish = true;
+		projectNameCanFinish = true;
 	}
 
 	
-	if ( !isAppNameValid(mApplicationText.getText())) {
-		mAppNameCanFinish = false;
-		setMessage("Application name must  contain 2 characters at least.");	
+	if ( !isAppNameValid(applicationText.getText())) {
+		appNameCanFinish = false;
+		setMessage("Application name must  contain 2 characters at least,and make sure they are lowercase letters", WARNING);	
 	}
 	else {
-		mAppNameCanFinish = true;
+		setMessage("");
+		appNameCanFinish = true;
 	}
-	if (mProjectNameCanFinish && mAppNameCanFinish)
+	if (projectNameCanFinish && appNameCanFinish)
 		setPageComplete(true);
 	else
 		setPageComplete(false);
@@ -176,8 +175,8 @@ public void modifyText(ModifyEvent e) {
 		return;
 	}
 	Object source = e.getSource();
-	if (source == mProjectText) {
-		nHostedWizardState.projectName = mProjectText.getText();
+	if (source == projectText) {
+		nHostedWizardState.projectName = projectText.getText();
 		updateProjectLocation(nHostedWizardState.projectName);
 		nHostedWizardState.projectModified = true;
 
@@ -185,21 +184,21 @@ public void modifyText(ModifyEvent e) {
 			mIgnore = true;
 			if (!nHostedWizardState.applicationModified) {
 				nHostedWizardState.applicationName = nHostedWizardState.projectName;
-				mApplicationText.setText(nHostedWizardState.projectName);
+				applicationText.setText(nHostedWizardState.projectName);
 			}
 			// update nHostedWizardState.projectName;
 		} finally {
 			mIgnore = false;
 		}
-	} else if (source == mApplicationText) {
-		nHostedWizardState.applicationName = mApplicationText.getText();
+	} else if (source == applicationText) {
+		nHostedWizardState.applicationName = applicationText.getText();
 		nHostedWizardState.applicationModified = true;
 
 		try {
 			mIgnore = true;
 			if (!nHostedWizardState.projectModified) {
 				nHostedWizardState.projectName = appNameToProjectName(nHostedWizardState.applicationName);
-				mProjectText.setText(nHostedWizardState.projectName);
+				projectText.setText(nHostedWizardState.projectName);
 				updateProjectLocation(nHostedWizardState.projectName);
 			}
 			// updateActivityNames(nHostedWizardState.applicationName);
@@ -264,27 +263,29 @@ public void focusGained(FocusEvent e) {
 	// handler for focus gained
 	Object source = e.getSource();
 	String tip = "";
-	if (source == mApplicationText) {
-		tip = mApplicationDec.getDescriptionText();
-	} else if (source == mProjectText) {
-		tip = mProjectDec.getDescriptionText();
+	if (source == applicationText) {
+		tip = applicationDec.getDescriptionText();
+	} else if (source == projectText) {
+		tip = projectDec.getDescriptionText();
 	}
 
-	mTipLabel.setText(tip);
-	mHelpNote.setVisible(tip.length() > 0);
+	tipLabel.setText(tip);
+	helpNote.setVisible(tip.length() > 0);
 }
 
 @Override
 public void focusLost(FocusEvent e) {
-	mTipLabel.setText("");
-	mHelpNote.setVisible(false);
+	tipLabel.setText("");
+	helpNote.setVisible(false);
 }
 
 
 public boolean isAppNameValid(String inputString)
 {	
+	Pattern pattern = Pattern.compile("[a-z]{0,}");
+	Matcher matcher = pattern.matcher(inputString);
 	int leastNameLength = 2;
-	if(inputString.length() < leastNameLength)
+	if(inputString.length() < leastNameLength || (!matcher.matches()))
 		return false;
 	else 
 		return true;
@@ -300,7 +301,7 @@ public IWizardPage getNextPage()
 
 @Override
 public boolean canFlipToNextPage() {
-	if(isAppNameValid(mApplicationText.getText())){
+	if(isAppNameValid(applicationText.getText())){
 		return true;
 	}
 	else{
@@ -308,6 +309,5 @@ public boolean canFlipToNextPage() {
 	}
 	
 }
-
 
 }

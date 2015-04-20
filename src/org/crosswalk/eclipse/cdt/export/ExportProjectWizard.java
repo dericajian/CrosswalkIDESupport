@@ -120,23 +120,7 @@ public class ExportProjectWizard extends Wizard implements IExportWizard {
 				throws InvocationTargetException {
 					try {		
 						monitor.beginTask("Exporting app to: "+ destFile.toString(), 20);
-						runResult = ExportHelper.doExport(eProject, targetFormat, destFile, packageParameters, monitor);
-						
-						
-						//delete the folder org.crosswalk.appName	
-						IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-						Path sourceManifestFile = FileSystems.getDefault().getPath(eProject.getLocation().toString(), "manifest.json");	//copy the manifest.json file
-						String manifestLocation = sourceManifestFile.toString();	
-						JSONObject manifest = new JSONObject(new JSONTokener(				//get the manifest file 
-								new FileReader(manifestLocation)));
-						
-						String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + manifest.get("name");
-						Path tmpFolderForGenerate = FileSystems.getDefault().getPath(root.getLocation().toString() + File.separator + packageName);
-						if(!root.getProject(eProject.getName()).exists()){
-							File forDelete = new File(root.getLocation().toString() + File.separator + packageName);
-							deleteDirectory(forDelete);
-						}
-						
+						runResult = ExportHelper.doExport(eProject, targetFormat, destFile, packageParameters, monitor);		
 						
 					} catch (IOException e) {
 						e.printStackTrace();

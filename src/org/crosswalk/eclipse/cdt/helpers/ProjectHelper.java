@@ -183,7 +183,6 @@ public final class ProjectHelper {
 				System.getenv());
 		StringBuilder cmd = new StringBuilder();
 		String packageName = CdtConstants.CROSSWALK_PACKAGE_PREFIX + nProjectWizardState.applicationName;
-		CdtPluginLog.logInfo("packageName: " + packageName);
 		cmd.append("crosswalk-app create " + packageName);
 		Process process;
 		try {

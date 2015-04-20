@@ -115,7 +115,6 @@ public final class ExportHelper {
 
 			ProjectHelper projectHelper = new ProjectHelper();
 			projectHelper.resourceHandler(root.getLocation().toString());
-//			String targetFolder = root.getLocation().toString() + File.separator + packageName + File.separator + "app";
 			String sourceFolder = project.getLocation().toString();
 			String targetFolder = sourceFolder + File.separator + ".tmp" + File.separator + packageName + File.separator + "app";
 			Path targetManifestFile = FileSystems.getDefault().getPath(targetFolder , "manifest.json");
@@ -138,11 +137,12 @@ public final class ExportHelper {
 			
 			//copy the launch file.
 			//We must copy this file no matter whether the name is index.html since user may change it after setting it in manifestSettingPage
-			String startUrl = manifest.get("start_url").toString();
-			CdtPluginLog.logInfo("startUrl for export is now: " +startUrl);
-			Path sourceStartUrlFile = FileSystems.getDefault().getPath(sourceFolder, startUrl);
-			Path targetStartUrlFile = FileSystems.getDefault().getPath(targetFolder, startUrl);
-			Files.copy(sourceStartUrlFile, targetStartUrlFile,REPLACE_EXISTING);
+			if(NewProjectWizardState.isPackagedProject){
+				String startUrl = manifest.get("start_url").toString();
+				Path sourceStartUrlFile = FileSystems.getDefault().getPath(sourceFolder, startUrl);
+				Path targetStartUrlFile = FileSystems.getDefault().getPath(targetFolder, startUrl);
+				Files.copy(sourceStartUrlFile, targetStartUrlFile,REPLACE_EXISTING);
+			}
 		
 
 		
@@ -150,7 +150,6 @@ public final class ExportHelper {
 		File buildDir = new File(project.getLocation().toString() + File.separator+".tmp" + File.separator + packageName);
 		
 		cmd.append("crosswalk-app build");	
-		CdtPluginLog.logInfo("***** cmd: " + cmd.toString());
 		pMonitor.worked(1);
 		Process process = Runtime.getRuntime().exec(cmd.toString(),
 					mapToStringArray(env), buildDir);//execute cmd in specific targetFolder
@@ -163,7 +162,6 @@ public final class ExportHelper {
 		}
 		//copy the deb package to user-specified path
 		String debPackageName = packageparameters.appName + "_" + packageparameters.appVersion + "-1_" + packageparameters.supportedArch + ".deb";
-		CdtPluginLog.logInfo("The debPackgeName is :" + debPackageName);
 		Path source = FileSystems.getDefault().getPath(buildDir.toString() ,"pkg", debPackageName);
 		Path target = FileSystems.getDefault().getPath(packageparameters.targetFolder,debPackageName);
 		Files.copy(source, target, REPLACE_EXISTING);

@@ -50,7 +50,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	private Text startUrlText;
 	private Text xwalkVersionText;
 	public static Text iconPathText;
-	//public static Text iconSizeText;
 	public static Text iconHeightText;
 	public static Text iconWidthText;
 	private ControlDecoration iconPathDec;
@@ -69,7 +68,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	private Boolean startUrlCanFinish;
 	private Boolean xwalkVersionChanged;
 	private Boolean startUrlChanged;
-	private Files iconFile;
 	private String iconSourceMessage;
 	
 	
@@ -77,6 +75,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	
 	 PackagedManifestSettingPage(NewProjectWizardState values) {
 		 super("manifestSetting");
+		 NewProjectWizardState.isPackagedProject = true;
 		 xwalkVersionChanged = false;
 		 startUrlChanged = false;
 		 iconSourceMessage = "Select the path of your favourite icon.";
@@ -117,7 +116,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		xwalkVersionText.addModifyListener(this);
 		xwalkVersionText.addFocusListener(this);
 		versionDec = createFieldDecoration(xwalkVersionText,
-				"The version of Crosswalk. It must contain 3-4 dot-separated segments ,and each between 0 and 9999");
+				"The version of Crosswalk. It must contain 3-4 dot-separated segments ,and each between 0 and 9999.");
 
 		
 		Label startUrlLabel = new Label(container, SWT.NONE);
@@ -244,14 +243,14 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 					iconPathBrowser.setEnabled(false);
 					iconHeightText.setEnabled(false);
 					iconWidthText.setEnabled(false);
-					nProjectWizardState.useDefaultIcon = true;
+					NewProjectWizardState.useDefaultIcon = true;
 			}
 			else{	//not use default icon
 					iconPathBrowser.setEnabled(true);
 					iconPathText.setEnabled(true);
 					iconHeightText.setEnabled(true);
 					iconWidthText.setEnabled(true);
-					nProjectWizardState.useDefaultIcon = false;	
+					NewProjectWizardState.useDefaultIcon = false;	
 				}
 			
 		}        
@@ -326,7 +325,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 			setPageComplete(false);
 		}
 		else{
-			nProjectWizardState.iconSize = iconHeightText.getText().trim() + "x" + iconWidthText.getText().trim();	
+			NewProjectWizardState.iconSize = iconHeightText.getText().trim() + "x" + iconWidthText.getText().trim();	
 		}
 	}
 	
@@ -335,8 +334,8 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 			setPageComplete(false);
 		}
 		else{
-			nProjectWizardState.startUrl = startUrlText.getText().trim();	
-			nProjectWizardState.startUrlChanged = true;//TODO:modify manifest.json file
+			NewProjectWizardState.startUrl = startUrlText.getText().trim();	
+			NewProjectWizardState.startUrlChanged = true;//TODO:modify manifest.json file
 		}
 	}
 	
@@ -346,7 +345,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 				
 			}
 		else{
-				nProjectWizardState.xwalkVersion = xwalkVersionText.getText().trim();
+				NewProjectWizardState.xwalkVersion = xwalkVersionText.getText().trim();
 				xwalkVersionChanged = true;
 			}
 		 	
@@ -358,10 +357,10 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 		}
 		else{
 			String location = iconPathText.getText().trim();
-			java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
-			nProjectWizardState.iconPathChanged = true;
-			nProjectWizardState.useDefaultIcon = false;
-			nProjectWizardState.favIcon = location;	//Need more work			
+//			java.nio.file.Path iconPath = FileSystems.getDefault().getPath(location);
+			NewProjectWizardState.iconPathChanged = true;
+			NewProjectWizardState.useDefaultIcon = false;
+			NewProjectWizardState.favIcon = location;	//Need more work			
 			}
 		}
 		
@@ -384,7 +383,6 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 	
 	private void CanFinish() {
 		int errorCount = 0;
-		String errorMessage = new String("");
 
 		if(!isIconSizeValid()){
 			errorCount++;
@@ -452,7 +450,7 @@ public class PackagedManifestSettingPage extends WizardPage implements ModifyLis
 			Pattern pattern = Pattern.compile("[0-9]{1,4}");	//must be numbers
 			Matcher matcher = pattern.matcher(curInput);	
 			if(matcher.matches() ){
-				if(xwalkVersionText.getText().toString().split("\\.").length == 3 || xwalkVersionText.getText().toString().split("\\.").length == 4)
+				if(versionParts.length == 3 || versionParts.length == 4)
 				allSegmentValid = true;
 			}
 			if(!xwalkVersionText.getText().toString().endsWith(".") && allSegmentValid){

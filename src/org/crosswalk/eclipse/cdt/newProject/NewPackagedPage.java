@@ -61,6 +61,7 @@ public class NewPackagedPage extends WizardPage implements ModifyListener,
 
 	NewPackagedPage(NewProjectWizardState newPWState) {
 		super("newPackagedCrosswalkApp");
+		NewProjectWizardState.isPackagedProject = true;
 		newWizardState = newPWState;
 		setTitle("New Packaged Crosswalk Application");
 		setDescription("Creates a new Packaged Crosswalk Application");

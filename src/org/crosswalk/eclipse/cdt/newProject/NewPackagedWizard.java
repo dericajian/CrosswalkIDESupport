@@ -53,7 +53,7 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 	PackagedManifestSettingPage packagedManifestSettingPage;
 	NewPackagedPage newPage;
 	private IProject nProject;
-	String iconName;
+	String iconName = nProjectWizardState.favIcon.substring(nProjectWizardState.favIcon.lastIndexOf('/')+1);;
 	String startUrl;
 	
 	public NewPackagedWizard() {
@@ -141,8 +141,6 @@ public class NewPackagedWizard extends Wizard implements INewWizard {
 				icons.put(newIcon);
 				
 			}			
-			
-		
 			
 			if(nProjectWizardState.startUrlChanged){  			//update the start_url domain in manifest.json
 				startUrl = nProjectWizardState.startUrl.substring(nProjectWizardState.startUrl.lastIndexOf("/")+1);
